@@ -51,7 +51,18 @@ export default function CartPage() {
             </Link>
           </div>
         ) : (
-          <div className="cart-content-wrapper">
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div className="lg:col-span-2">
+              <div className="space-y-4">
+
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-6 h-fit">
+            </div>
+
           </div>
         )}
       </div>
