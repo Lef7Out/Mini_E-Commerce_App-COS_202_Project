@@ -74,6 +74,48 @@ export default function CheckoutPage() {
     setShippingAddress((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      // Create order
+      const { data: orderData, error: orderError } = await supabase
+        .from("orders")
+        .insert([{
+            user_id: user.id,
+            total: cartTotal * 1.1,
+            status: "completed",
+            shipping_address: shippingAddress,
+          }])
+        .select();
+
+      if (orderError) throw orderError;
+      const orderId = (orderData as any)[0]?.id;
+
+      // Create order items
+      if (orderId) {
+        const orderItems = cartItems.map((item) => ({
+          order_id: orderId,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          price_at_purchase: item.product.price,
+        }));
+
+        const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
+        if (itemsError) throw itemsError;
+      }
+
+      await clearCart();
+      router.push(`/checkout/success?orderId=${orderId}`);
+    } catch (err) {
+      setError((err as Error).message || "Failed to complete order");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <Layout>
@@ -89,7 +131,7 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           <div className="lg:col-span-2">
-             <form className="space-y-6">
+             <form onSubmit={handleSubmit} className="space-y-6">
                 {error && (
                 <div className="p-4 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg">
                   {error}
